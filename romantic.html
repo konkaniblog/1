@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Funny Quotes | Cannon's Blog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f9f9fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .back-btn {
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 30px;
+      color: #222;
+    }
+
+    .quote-container {
+      max-width: 800px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .quote {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 0.6s ease forwards;
+      position: relative;
+    }
+
+    .quote:nth-child(1) { animation-delay: 0.2s; }
+    .quote:nth-child(2) { animation-delay: 0.4s; }
+    .quote:nth-child(3) { animation-delay: 0.6s; }
+    .quote:nth-child(4) { animation-delay: 0.8s; }
+    .quote:nth-child(5) { animation-delay: 1s; }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .like-section {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 18px;
+    }
+
+    .like-btn, .comment-btn {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .like-btn:hover, .comment-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .flying-heart {
+      position: absolute;
+      animation: flyUp 1s ease-out forwards;
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes flyUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-80px) scale(1.5);
+      }
+    }
+
+    .comments-box {
+      margin-top: 10px;
+      padding: 10px;
+      border-top: 1px solid #eee;
+      display: none;
+      font-size: 14px;
+      color: #444;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .comment-entry {
+      margin-bottom: 8px;
+    }
+
+    .comment-entry strong {
+      color: #000;
+    }
+
+    .quote {
+      /* ... existing styles ... */
+      word-break: break-word;
+    }
+
+    .add-comment {
+      margin-top: 10px;
+      font-size: 14px;
+      color: blue;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      padding-top: 100px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 8px;
+      right: 16px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+  </style>
+</head>
+<body>
+
+  <button class="back-btn" onclick="history.back()">Back</button>
+  <h1>ಮೋಗ್ ಆಸೊಂದಿ ❤️</h1>
+
+  <div class="quote-container">
+    <div class="quote" data-id="q1">
+      "I'm not arguing, I'm just explaining why I'm right."
+      <div class="like-section">
+        <span class="like-btn" onclick="toggleLike(this)">♡</span>
+        <span class="like-count">0</span>
+        <span class="comment-btn" onclick="toggleComments(this)">💬</span>
+      </div>
+      <div class="comments-box"></div>
+    </div>
+
+    <div class="quote" data-id="q2">
+      "I used to think I was indecisive, but now I'm not so sure."
+      <div class="like-section">
+        <span class="like-btn" onclick="toggleLike(this)">♡</span>
+        <span class="like-count">0</span>
+        <span class="comment-btn" onclick="toggleComments(this)">💬</span>
+      </div>
+      <div class="comments-box"></div>
+    </div>
+
+    <div class="quote" data-id="q3">
+      "Why don’t scientists trust atoms? Because they make up everything."
+      <div class="like-section">
+        <span class="like-btn" onclick="toggleLike(this)">♡</span>
+        <span class="like-count">0</span>
+        <span class="comment-btn" onclick="toggleComments(this)">💬</span>
+      </div>
+      <div class="comments-box"></div>
+    </div>
+
+    <div class="quote" data-id="q4">
+      "My bed is a magical place I suddenly remember everything I forgot to do."
+      <div class="like-section">
+        <span class="like-btn" onclick="toggleLike(this)">♡</span>
+        <span class="like-count">0</span>
+        <span class="comment-btn" onclick="toggleComments(this)">💬</span>
+      </div>
+      <div class="comments-box"></div>
+    </div>
+
+    <div class="quote" data-id="q5">
+      "Life is short. Smile while you still have teeth."
+      <div class="like-section">
+        <span class="like-btn" onclick="toggleLike(this)">♡</span>
+        <span class="like-count">0</span>
+        <span class="comment-btn" onclick="toggleComments(this)">💬</span>
+      </div>
+      <div class="comments-box"></div>
+    </div>
+  </div>
+
+  <script>
+    // On load, setup likes & comments from localStorage
+    window.onload = function () {
+      document.querySelectorAll('.quote').forEach(quote => {
+        const id = quote.getAttribute('data-id');
+        const liked = localStorage.getItem('liked_' + id) === 'true';
+        const count = localStorage.getItem('like_count_' + id) || '0';
+        quote.querySelector('.like-btn').innerText = liked ? '❤️' : '♡';
+        quote.querySelector('.like-count').innerText = count;
+
+        const comments = JSON.parse(localStorage.getItem('comments_' + id) || '[]');
+        renderComments(quote, comments);
+      });
+    };
+
+    function toggleLike(btn) {
+      const quote = btn.closest('.quote');
+      const id = quote.getAttribute('data-id');
+      const countSpan = btn.nextElementSibling;
+      let count = parseInt(countSpan.innerText);
+
+      const isLiked = localStorage.getItem('liked_' + id) === 'true';
+
+      if (isLiked) {
+        btn.innerText = '♡';
+        count = Math.max(0, count - 1);
+        localStorage.setItem('liked_' + id, false);
+      } else {
+        btn.innerText = '❤️';
+        count += 1;
+        localStorage.setItem('liked_' + id, true);
+
+        const flyingHeart = document.createElement('span');
+        flyingHeart.className = 'flying-heart';
+        flyingHeart.innerText = '❤️';
+        const rect = btn.getBoundingClientRect();
+        flyingHeart.style.left = rect.left + window.scrollX + 'px';
+        flyingHeart.style.top = rect.top + window.scrollY + 'px';
+        document.body.appendChild(flyingHeart);
+        setTimeout(() => flyingHeart.remove(), 1000);
+      }
+
+      countSpan.innerText = count;
+      localStorage.setItem('like_count_' + id, count);
+    }
+
+    function toggleComments(btn) {
+      const quote = btn.closest('.quote');
+      const id = quote.getAttribute('data-id');
+      const box = quote.querySelector('.comments-box');
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+
+      if (box.style.display === 'block') {
+        let comments = JSON.parse(localStorage.getItem('comments_' + id) || '[]');
+        renderComments(quote, comments);
+      }
+    }
+
+    function renderComments(quote, comments) {
+      const box = quote.querySelector('.comments-box');
+      box.innerHTML = '';
+
+      comments.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comment-entry';
+        div.innerHTML = `<strong>${c.name}:</strong> ${c.text}`;
+        box.appendChild(div);
+      });
+
+      const addBtn = document.createElement('div');
+      addBtn.className = 'add-comment';
+      addBtn.innerText = '+ Add Comment';
+      addBtn.onclick = function () {
+        const name = prompt("Your name:");
+        if (!name) return;
+        const text = prompt("Your comment:");
+        if (!text) return;
+
+        comments.push({ name, text });
+        localStorage.setItem('comments_' + quote.getAttribute('data-id'), JSON.stringify(comments));
+        renderComments(quote, comments);
+      };
+      box.appendChild(addBtn);
+    }
+  </script>
+  <!-- Comment Modal -->
+  <div id="commentModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h3>Add a Comment</h3>
+      <input type="text" id="commentName" placeholder="Your Name" />
+      <textarea id="commentText" placeholder="Your Comment"></textarea>
+      <button onclick="submitComment()">Submit</button>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firebase Comments Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+    #commentDisplay > div { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+    form input, form textarea, form button {
+      width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    form button { background: black; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<h2>Leave a Comment</h2>
+
+<form id="commentForm">
+  <input type="text" id="userName" placeholder="Your Name" required />
+  <input type="email" id="userEmail" placeholder="Your Email (optional)" />
+  <textarea id="userComment" placeholder="Your Comment..." required rows="4"></textarea>
+  <button type="submit">Post Comment</button>
+</form>
+
+<div id="commentDisplay"></div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3aH9SEKyAOAcWVilmTgJhvodY1Z31Gt4",
+    authDomain: "cannons-blog.firebaseapp.com",
+    projectId: "cannons-blog",
+    storageBucket: "cannons-blog.firebasestorage.app",
+    messagingSenderId: "623166228878",
+    appId: "1:623166228878:web:8b4f5e1d928a7ae8a5fcdf",
+    measurementId: "G-TG4S7EYJBQ"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const form = document.getElementById("commentForm");
+  const display = document.getElementById("commentDisplay");
+
+  function renderComments(snapshot) {
+    display.innerHTML = "";
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      }) : "Loading...";
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <strong>${data.name}</strong> <small style="color: gray;">(${date})</small>
+        <p>${data.comment}</p>
+        ${data.email ? `<p><em>Email:</em> ${data.email}</p>` : ""}
+      `;
+      display.prepend(div);
+    });
+  }
+
+  db.collection("comments").orderBy("timestamp", "desc").onSnapshot(renderComments);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("userName").value.trim();
+    const email = document.getElementById("userEmail").value.trim();
+    const comment = document.getElementById("userComment").value.trim();
+
+    if (!name || !comment) {
+      alert("Name and comment are required.");
+      return;
+    }
+
+    try {
+      await db.collection("comments").add({
+        name,
+        email,
+        comment,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      form.reset();
+    } catch (err) {
+      alert("Error posting comment: " + err.message);
+    }
+  });
+</script>
+
+</body>
+</html>

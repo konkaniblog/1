@@ -1,0 +1,15 @@
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0px rgba(255, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(255, 0, 0, 0.6);
+  }
+}
+
+.enter-btn {
+  animation: pulse 2s infinite;
+}
