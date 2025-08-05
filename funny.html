@@ -321,34 +321,36 @@
   });
 };
 
-async function toggleLike(btn) {
-  const quote = btn.closest('.quote');
-  const id = quote.getAttribute('data-id'); // like q1, q2, etc.
-  const countSpan = btn.nextElementSibling;
-  const docRef = db.collection('quotes').doc(id); // Firebase collection + doc
+ function toggleLike(btn) {
+      const quote = btn.closest('.quote');
+      const id = quote.getAttribute('data-id');
+      const countSpan = btn.nextElementSibling;
+      let count = parseInt(countSpan.innerText);
 
-  // Get current like count from Firestore
-  const doc = await docRef.get();
-  let data = doc.exists ? doc.data() : { likes: 0 };
-  let liked = btn.innerText === '❤️';
+      const isLiked = localStorage.getItem('liked_' + id) === 'true';
 
-  if (liked) {
-    data.likes = Math.max(0, data.likes - 1);
-    btn.innerText = '♡';
-  } else {
-    data.likes += 1;
-    btn.innerText = '❤️';
+      if (isLiked) {
+        btn.innerText = '♡';
+        count = Math.max(0, count - 1);
+        localStorage.setItem('liked_' + id, false);
+      } else {
+        btn.innerText = '❤️';
+        count += 1;
+        localStorage.setItem('liked_' + id, true);
 
-    // Optional: flying heart animation
-    const flyingHeart = document.createElement('span');
-    flyingHeart.className = 'flying-heart';
-    flyingHeart.innerText = '❤️';
-    const rect = btn.getBoundingClientRect();
-    flyingHeart.style.left = rect.left + window.scrollX + 'px';
-    flyingHeart.style.top = rect.top + window.scrollY + 'px';
-    document.body.appendChild(flyingHeart);
-    setTimeout(() => flyingHeart.remove(), 1000);
-  }
+        const flyingHeart = document.createElement('span');
+        flyingHeart.className = 'flying-heart';
+        flyingHeart.innerText = '❤️';
+        const rect = btn.getBoundingClientRect();
+        flyingHeart.style.left = rect.left + window.scrollX + 'px';
+        flyingHeart.style.top = rect.top + window.scrollY + 'px';
+        document.body.appendChild(flyingHeart);
+        setTimeout(() => flyingHeart.remove(), 1000);
+      }
+
+      countSpan.innerText = count;
+      localStorage.setItem('like_count_' + id, count);
+    }
 
   // Save updated count to Firestore
   await docRef.set(data);
