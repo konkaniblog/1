@@ -321,39 +321,40 @@
   });
 };
 
- function toggleLike(btn) {
-      const quote = btn.closest('.quote');
-      const id = quote.getAttribute('data-id');
-      const countSpan = btn.nextElementSibling;
-      let count = parseInt(countSpan.innerText);
+ async function toggleLike(btn) {
+  const quote = btn.closest('.quote');
+  const id = quote.getAttribute('data-id');
+  const countSpan = btn.nextElementSibling;
+  const docRef = db.collection('quotes').doc(id);
 
-      const isLiked = localStorage.getItem('liked_' + id) === 'true';
+  // Get current like count from Firestore
+  const doc = await docRef.get();
+  let data = doc.exists ? doc.data() : { likes: 0 };
 
-      if (isLiked) {
-        btn.innerText = '♡';
-        count = Math.max(0, count - 1);
-        localStorage.setItem('liked_' + id, false);
-      } else {
-        btn.innerText = '❤️';
-        count += 1;
-        localStorage.setItem('liked_' + id, true);
+  const isLiked = btn.innerText === '❤️';
 
-        const flyingHeart = document.createElement('span');
-        flyingHeart.className = 'flying-heart';
-        flyingHeart.innerText = '❤️';
-        const rect = btn.getBoundingClientRect();
-        flyingHeart.style.left = rect.left + window.scrollX + 'px';
-        flyingHeart.style.top = rect.top + window.scrollY + 'px';
-        document.body.appendChild(flyingHeart);
-        setTimeout(() => flyingHeart.remove(), 1000);
-      }
+  if (isLiked) {
+    btn.innerText = '♡';
+    data.likes = Math.max(0, data.likes - 1);
+  } else {
+    btn.innerText = '❤️';
+    data.likes += 1;
 
-      countSpan.innerText = count;
-      localStorage.setItem('like_count_' + id, count);
-    }
+    // Same flying heart UI effect
+    const flyingHeart = document.createElement('span');
+    flyingHeart.className = 'flying-heart';
+    flyingHeart.innerText = '❤️';
+    const rect = btn.getBoundingClientRect();
+    flyingHeart.style.left = rect.left + window.scrollX + 'px';
+    flyingHeart.style.top = rect.top + window.scrollY + 'px';
+    document.body.appendChild(flyingHeart);
+    setTimeout(() => flyingHeart.remove(), 1000);
+  }
 
-  // Save updated count to Firestore
+  // Save to Firestore
   await docRef.set(data);
+
+  // Update UI
   countSpan.innerText = data.likes;
 }
 
