@@ -296,7 +296,14 @@
 
   // ✅ Initialize Firebase using "compat" syntax (you are using script tags, not modules)
   firebase.initializeApp(firebaseConfig);
+  console.log("Firebase initialized:", !!firebase.apps.length);
+
   const db = firebase.firestore();
+
+db.collection('quotes').get()
+  .then(snapshot => console.log("Firestore read success", snapshot.size))
+  .catch(err => console.error("Firestore read error:", err));
+
 </script>
 
 
@@ -314,41 +321,38 @@
 };
 
  async function toggleLike(btn) {
+  console.log("Like button clicked");
+
   const quote = btn.closest('.quote');
   const id = quote.getAttribute('data-id');
+  console.log("Quote ID:", id);
+
   const countSpan = btn.nextElementSibling;
   const docRef = db.collection('quotes').doc(id);
 
-  // Get current like count from Firestore
-  const doc = await docRef.get();
-  let data = doc.exists ? doc.data() : { likes: 0 };
+  try {
+    const doc = await docRef.get();
+    let data = doc.exists ? doc.data() : { likes: 0 };
+    console.log("Current likes in DB:", data.likes);
 
-  const isLiked = btn.innerText === '❤️';
+    const isLiked = btn.innerText === '❤️';
 
-  if (isLiked) {
-    btn.innerText = '♡';
-    data.likes = Math.max(0, data.likes - 1);
-  } else {
-    btn.innerText = '❤️';
-    data.likes += 1;
+    if (isLiked) {
+      btn.innerText = '♡';
+      data.likes = Math.max(0, data.likes - 1);
+    } else {
+      btn.innerText = '❤️';
+      data.likes += 1;
+    }
 
-    // Same flying heart UI effect
-    const flyingHeart = document.createElement('span');
-    flyingHeart.className = 'flying-heart';
-    flyingHeart.innerText = '❤️';
-    const rect = btn.getBoundingClientRect();
-    flyingHeart.style.left = rect.left + window.scrollX + 'px';
-    flyingHeart.style.top = rect.top + window.scrollY + 'px';
-    document.body.appendChild(flyingHeart);
-    setTimeout(() => flyingHeart.remove(), 1000);
+    await docRef.set(data);
+    countSpan.innerText = data.likes;
+    console.log("Likes updated to:", data.likes);
+  } catch (error) {
+    console.error("Error toggling like:", error);
   }
-
-  // Save to Firestore
-  await docRef.set(data);
-
-  // Update UI
-  countSpan.innerText = data.likes;
 }
+
 
 
     function toggleComments(btn) {
