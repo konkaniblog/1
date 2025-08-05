@@ -278,20 +278,12 @@
       <div class="comments-box"></div>
     </div>
   </div>
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
 
 <script>
-  const firebaseConfig = {
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "firebase/app";
-    import { getAnalytics } from "firebase/analytics";
-    // ...
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-<script>
+  // ✅ Your actual Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBKWNKLIF2UdKeIauYXzeozmNn6-DQ-SEc",
     authDomain: "kblog-95021.firebaseapp.com",
@@ -302,7 +294,7 @@
     measurementId: "G-46GM5X7QE7"
   };
 
-  // Use Firebase "compat" syntax because you are loading via script tag
+  // ✅ Initialize Firebase using "compat" syntax (you are using script tags, not modules)
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 </script>
