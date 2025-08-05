@@ -278,139 +278,52 @@
       <div class="comments-box"></div>
     </div>
   </div>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKWNKLIF2UdKeIauYXzeozmNn6-DQ-SEc",
-    authDomain: "kblog-95021.firebaseapp.com",
-    projectId: "kblog-95021",
-    storageBucket: "kblog-95021.appspot.com",
-    messagingSenderId: "522498816649",
-    appId: "1:522498816649:web:8c2d7508401c59bfade458",
-    measurementId: "G-46GM5X7QE7"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  async function loadLikes() {
-    const quotes = document.querySelectorAll('.quote');
-    for (const quote of quotes) {
-      const id = quote.getAttribute('data-id');
-      const doc = await db.collection('quotes').doc(id).get();
-      const data = doc.exists ? doc.data() : { likes: 0 };
-      quote.querySelector('.like-count').innerText = data.likes;
-
-      if(localStorage.getItem('liked_' + id) === 'true'){
-        quote.querySelector('.like-btn').innerText = '❤️';
-      } else {
-        quote.querySelector('.like-btn').innerText = '♡';
-      }
-    }
-  }
-
-  async function toggleLike(btn) {
-    const quote = btn.closest('.quote');
-    const id = quote.getAttribute('data-id');
-    if(localStorage.getItem('liked_' + id) === 'true'){
-      alert("You already liked this quote!");
-      return;
-    }
-
-    const docRef = db.collection('quotes').doc(id);
-    const doc = await docRef.get();
-    let likes = doc.exists ? doc.data().likes : 0;
-    likes++;
-
-    await docRef.set({ likes: likes }, { merge: true });
-
-    btn.innerText = '❤️';
-    quote.querySelector('.like-count').innerText = likes;
-    localStorage.setItem('liked_' + id, 'true');
-
-    // Flying heart animation
-    const flyingHeart = document.createElement('span');
-    flyingHeart.className = 'flying-heart';
-    flyingHeart.innerText = '❤️';
-    const rect = btn.getBoundingClientRect();
-    flyingHeart.style.left = rect.left + window.scrollX + 'px';
-    flyingHeart.style.top = rect.top + window.scrollY + 'px';
-    document.body.appendChild(flyingHeart);
-    setTimeout(() => flyingHeart.remove(), 1000);
-  }
-
-  window.onload = loadLikes;
-</script>
-
-
 
   <script>
     // On load, setup likes & comments from localStorage
- window.onload = async function () {
-  const quotes = document.querySelectorAll('.quote');
-  for (const quote of quotes) {
-    const id = quote.getAttribute('data-id');
-    const likeRef = db.collection('quotes').doc(id);
-    try {
-      const doc = await likeRef.get();
-      const data = doc.exists ? doc.data() : { likes: 0 };
-      quote.querySelector('.like-count').innerText = data.likes;
+    window.onload = function () {
+      document.querySelectorAll('.quote').forEach(quote => {
+        const id = quote.getAttribute('data-id');
+        const liked = localStorage.getItem('liked_' + id) === 'true';
+        const count = localStorage.getItem('like_count_' + id) || '0';
+        quote.querySelector('.like-btn').innerText = liked ? '❤️' : '♡';
+        quote.querySelector('.like-count').innerText = count;
 
-      // Show red heart if already liked
+        const comments = JSON.parse(localStorage.getItem('comments_' + id) || '[]');
+        renderComments(quote, comments);
+      });
+    };
+
+    function toggleLike(btn) {
+      const quote = btn.closest('.quote');
+      const id = quote.getAttribute('data-id');
+      const countSpan = btn.nextElementSibling;
+      let count = parseInt(countSpan.innerText);
+
       const isLiked = localStorage.getItem('liked_' + id) === 'true';
+
       if (isLiked) {
-        quote.querySelector('.like-btn').innerText = '❤️';
+        btn.innerText = '♡';
+        count = Math.max(0, count - 1);
+        localStorage.setItem('liked_' + id, false);
+      } else {
+        btn.innerText = '❤️';
+        count += 1;
+        localStorage.setItem('liked_' + id, true);
+
+        const flyingHeart = document.createElement('span');
+        flyingHeart.className = 'flying-heart';
+        flyingHeart.innerText = '❤️';
+        const rect = btn.getBoundingClientRect();
+        flyingHeart.style.left = rect.left + window.scrollX + 'px';
+        flyingHeart.style.top = rect.top + window.scrollY + 'px';
+        document.body.appendChild(flyingHeart);
+        setTimeout(() => flyingHeart.remove(), 1000);
       }
-    } catch (error) {
-      console.error("Error loading likes for", id, error);
+
+      countSpan.innerText = count;
+      localStorage.setItem('like_count_' + id, count);
     }
-  }
-};
-
-async function toggleLike(btn) {
-  const quote = btn.closest('.quote');
-  const id = quote.getAttribute('data-id');
-  const countSpan = btn.nextElementSibling;
-  const docRef = db.collection('quotes').doc(id);
-
-  const isLiked = localStorage.getItem('liked_' + id) === 'true';
-  if (isLiked) {
-    alert("You already liked this quote!");
-    return;
-  }
-
-  try {
-    const doc = await docRef.get();
-    let currentLikes = doc.exists ? doc.data().likes || 0 : 0;
-    currentLikes++;
-
-    // Update likes count in Firestore safely
-    await docRef.set({ likes: currentLikes }, { merge: true });
-
-    btn.innerText = '❤️';
-    countSpan.innerText = currentLikes;
-    localStorage.setItem('liked_' + id, true);
-
-    // Flying heart animation
-    const flyingHeart = document.createElement('span');
-    flyingHeart.className = 'flying-heart';
-    flyingHeart.innerText = '❤️';
-    const rect = btn.getBoundingClientRect();
-    flyingHeart.style.left = rect.left + window.scrollX + 'px';
-    flyingHeart.style.top = rect.top + window.scrollY + 'px';
-    document.body.appendChild(flyingHeart);
-    setTimeout(() => flyingHeart.remove(), 1000);
-
-    console.log("Like saved and remembered");
-  } catch (error) {
-    console.error("Error updating like count:", error);
-  }
-}
-
-
 
     function toggleComments(btn) {
       const quote = btn.closest('.quote');
