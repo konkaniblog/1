@@ -283,7 +283,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // ✅ Your actual Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBKWNKLIF2UdKeIauYXzeozmNn6-DQ-SEc",
     authDomain: "kblog-95021.firebaseapp.com",
@@ -294,16 +293,58 @@
     measurementId: "G-46GM5X7QE7"
   };
 
-  // ✅ Initialize Firebase using "compat" syntax (you are using script tags, not modules)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
+  async function loadLikes() {
+    const quotes = document.querySelectorAll('.quote');
+    for (const quote of quotes) {
+      const id = quote.getAttribute('data-id');
+      const doc = await db.collection('quotes').doc(id).get();
+      const data = doc.exists ? doc.data() : { likes: 0 };
+      quote.querySelector('.like-count').innerText = data.likes;
 
-db.collection('quotes').get()
-  .then(snapshot => console.log("Firestore read success", snapshot.size))
-  .catch(err => console.error("Firestore read error:", err));
+      if(localStorage.getItem('liked_' + id) === 'true'){
+        quote.querySelector('.like-btn').innerText = '❤️';
+      } else {
+        quote.querySelector('.like-btn').innerText = '♡';
+      }
+    }
+  }
 
+  async function toggleLike(btn) {
+    const quote = btn.closest('.quote');
+    const id = quote.getAttribute('data-id');
+    if(localStorage.getItem('liked_' + id) === 'true'){
+      alert("You already liked this quote!");
+      return;
+    }
+
+    const docRef = db.collection('quotes').doc(id);
+    const doc = await docRef.get();
+    let likes = doc.exists ? doc.data().likes : 0;
+    likes++;
+
+    await docRef.set({ likes: likes }, { merge: true });
+
+    btn.innerText = '❤️';
+    quote.querySelector('.like-count').innerText = likes;
+    localStorage.setItem('liked_' + id, 'true');
+
+    // Flying heart animation
+    const flyingHeart = document.createElement('span');
+    flyingHeart.className = 'flying-heart';
+    flyingHeart.innerText = '❤️';
+    const rect = btn.getBoundingClientRect();
+    flyingHeart.style.left = rect.left + window.scrollX + 'px';
+    flyingHeart.style.top = rect.top + window.scrollY + 'px';
+    document.body.appendChild(flyingHeart);
+    setTimeout(() => flyingHeart.remove(), 1000);
+  }
+
+  window.onload = loadLikes;
 </script>
+
 
 
   <script>
