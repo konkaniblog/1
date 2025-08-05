@@ -278,52 +278,85 @@
       <div class="comments-box"></div>
     </div>
   </div>
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBKWNKLIF2UdKeIauYXzeozmNn6-DQ-SEc",
+  authDomain: "kblog-95021.firebaseapp.com",
+  projectId: "kblog-95021",
+  storageBucket: "kblog-95021.firebasestorage.app",
+  messagingSenderId: "522498816649",
+  appId: "1:522498816649:web:8c2d7508401c59bfade458",
+  measurementId: "G-46GM5X7QE7"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 
   <script>
     // On load, setup likes & comments from localStorage
-    window.onload = function () {
-      document.querySelectorAll('.quote').forEach(quote => {
-        const id = quote.getAttribute('data-id');
-        const liked = localStorage.getItem('liked_' + id) === 'true';
-        const count = localStorage.getItem('like_count_' + id) || '0';
-        quote.querySelector('.like-btn').innerText = liked ? '❤️' : '♡';
-        quote.querySelector('.like-count').innerText = count;
+   window.onload = function () {
+  document.querySelectorAll('.quote').forEach(async (quote) => {
+    const id = quote.getAttribute('data-id');
+    const likeRef = db.collection('quotes').doc(id);
+    const doc = await likeRef.get();
+    const data = doc.exists ? doc.data() : { likes: 0 };
 
-        const comments = JSON.parse(localStorage.getItem('comments_' + id) || '[]');
-        renderComments(quote, comments);
-      });
-    };
+    quote.querySelector('.like-count').innerText = data.likes;
+  });
+};
 
-    function toggleLike(btn) {
-      const quote = btn.closest('.quote');
-      const id = quote.getAttribute('data-id');
-      const countSpan = btn.nextElementSibling;
-      let count = parseInt(countSpan.innerText);
+async function toggleLike(btn) {
+  const quote = btn.closest('.quote');
+  const id = quote.getAttribute('data-id'); // like q1, q2, etc.
+  const countSpan = btn.nextElementSibling;
+  const docRef = db.collection('quotes').doc(id); // Firebase collection + doc
 
-      const isLiked = localStorage.getItem('liked_' + id) === 'true';
+  // Get current like count from Firestore
+  const doc = await docRef.get();
+  let data = doc.exists ? doc.data() : { likes: 0 };
+  let liked = btn.innerText === '❤️';
 
-      if (isLiked) {
-        btn.innerText = '♡';
-        count = Math.max(0, count - 1);
-        localStorage.setItem('liked_' + id, false);
-      } else {
-        btn.innerText = '❤️';
-        count += 1;
-        localStorage.setItem('liked_' + id, true);
+  if (liked) {
+    data.likes = Math.max(0, data.likes - 1);
+    btn.innerText = '♡';
+  } else {
+    data.likes += 1;
+    btn.innerText = '❤️';
 
-        const flyingHeart = document.createElement('span');
-        flyingHeart.className = 'flying-heart';
-        flyingHeart.innerText = '❤️';
-        const rect = btn.getBoundingClientRect();
-        flyingHeart.style.left = rect.left + window.scrollX + 'px';
-        flyingHeart.style.top = rect.top + window.scrollY + 'px';
-        document.body.appendChild(flyingHeart);
-        setTimeout(() => flyingHeart.remove(), 1000);
-      }
+    // Optional: flying heart animation
+    const flyingHeart = document.createElement('span');
+    flyingHeart.className = 'flying-heart';
+    flyingHeart.innerText = '❤️';
+    const rect = btn.getBoundingClientRect();
+    flyingHeart.style.left = rect.left + window.scrollX + 'px';
+    flyingHeart.style.top = rect.top + window.scrollY + 'px';
+    document.body.appendChild(flyingHeart);
+    setTimeout(() => flyingHeart.remove(), 1000);
+  }
 
-      countSpan.innerText = count;
-      localStorage.setItem('like_count_' + id, count);
-    }
+  // Save updated count to Firestore
+  await docRef.set(data);
+  countSpan.innerText = data.likes;
+}
+
 
     function toggleComments(btn) {
       const quote = btn.closest('.quote');
