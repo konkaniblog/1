@@ -318,7 +318,8 @@ db.collection('quotes').get()
     quote.querySelector('.like-count').innerText = data.likes;
 
     // Show red heart if already liked
-    const isLiked = localStorage.getItem('liked_' + id) === 'true';
+    const isLiked = localStorage.setItem('liked_' + id, 'true'); // 'true' as string
+
     if (isLiked) {
       quote.querySelector('.like-btn').innerText = '❤️';
     }
@@ -327,32 +328,30 @@ db.collection('quotes').get()
 
 
 async function toggleLike(btn) {
-  console.log("Like button clicked");
-
   const quote = btn.closest('.quote');
   const id = quote.getAttribute('data-id');
-  console.log("Quote ID:", id);
-
   const countSpan = btn.nextElementSibling;
   const docRef = db.collection('quotes').doc(id);
 
-  // Check if user already liked this quote using localStorage
   const isLiked = localStorage.getItem('liked_' + id) === 'true';
 
-  // Get current like count from Firestore
-  const doc = await docRef.get();
-  let data = doc.exists ? doc.data() : { likes: 0 };
-
   if (isLiked) {
-    // If already liked, do nothing or allow unlike if you want
     alert("You already liked this quote!");
     return;
-  } else {
-    // User likes it now
+  }
+
+  try {
+    const doc = await docRef.get();
+    let data = doc.exists ? doc.data() : { likes: 0 };
+
     data.likes += 1;
     btn.innerText = '❤️';
+    countSpan.innerText = data.likes;
+    localStorage.setItem('liked_' + id, 'true'); // <-- important fix
 
-    // Flying heart animation (optional)
+    await docRef.set(data);
+
+    // Optional animation
     const flyingHeart = document.createElement('span');
     flyingHeart.className = 'flying-heart';
     flyingHeart.innerText = '❤️';
@@ -362,16 +361,8 @@ async function toggleLike(btn) {
     document.body.appendChild(flyingHeart);
     setTimeout(() => flyingHeart.remove(), 1000);
 
-    // Save the new like count to Firestore
-    await docRef.set(data);
-
-    // Update UI
-    countSpan.innerText = data.likes;
-
-    // Save like in localStorage to prevent duplicate likes
-    localStorage.setItem('liked_' + id, true);
-
-    console.log("Like saved and remembered");
+  } catch (err) {
+    console.error("Failed to like:", err);
   }
 }
 
